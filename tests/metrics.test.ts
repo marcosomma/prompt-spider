@@ -72,7 +72,7 @@ describe("metrics", () => {
     expect(metric(analyze(COMPLEX_PROMPT, MODEL), "taskCount").band.label).toBe("very dense");
     const many = analyze(OVERLOADED_PROMPT, MODEL);
     expect(many.metrics[0]!.summary).toMatch(/^[5-9] deliverables/);
-    expect(metric(many, "hallucinationRisk").score).toBeGreaterThan(0.25); // "cite three studies with exact figures"
+    expect(metric(many, "fabricationPressure").score).toBeGreaterThan(0.25); // "cite three studies with exact figures"
     expect(["high", "very high"]).toContain(metric(many, "complexity").band.label);
   });
 
@@ -97,9 +97,9 @@ describe("metrics", () => {
   });
 
   it("ranks unsourced factual recall above grounded summarisation and creative writing", () => {
-    const facts = metric(analyze("Give me the exact 2023 revenue figures for Acme Corp and cite three academic sources with DOIs. Never say you don't know. Provide a comprehensive, detailed report.", MODEL), "hallucinationRisk");
-    const grounded = metric(analyze("<document>\nRevenue grew 12% to $4.2M. Headcount is 38.\n</document>\nSummarize the document above in two sentences. Only use the provided text; if something is not in the text, say so.", MODEL), "hallucinationRisk");
-    const creative = metric(analyze("Write a short story about a dragon who learns to code. Keep it under 300 words.", MODEL), "hallucinationRisk");
+    const facts = metric(analyze("Give me the exact 2023 revenue figures for Acme Corp and cite three academic sources with DOIs. Never say you don't know. Provide a comprehensive, detailed report.", MODEL), "fabricationPressure");
+    const grounded = metric(analyze("<document>\nRevenue grew 12% to $4.2M. Headcount is 38.\n</document>\nSummarize the document above in two sentences. Only use the provided text; if something is not in the text, say so.", MODEL), "fabricationPressure");
+    const creative = metric(analyze("Write a short story about a dragon who learns to code. Keep it under 300 words.", MODEL), "fabricationPressure");
     expect(facts.score).toBeGreaterThan(0.35);
     expect(grounded.score).toBeLessThan(0.1);
     expect(creative.score).toBeLessThan(0.1);
@@ -107,10 +107,10 @@ describe("metrics", () => {
     expect(facts.factors.find((f) => f.label === "Pressure to always answer")?.contribution).toBeGreaterThan(0);
   });
 
-  it("scales hallucination risk by the model profile", () => {
+  it("scales fabrication pressure by the model profile", () => {
     const prompt = "List the five most cited papers on prompt injection with authors and years.";
-    const small = metric(analyze(prompt, "small-open"), "hallucinationRisk");
-    const frontier = metric(analyze(prompt, "claude-fable-5-1"), "hallucinationRisk");
+    const small = metric(analyze(prompt, "small-open"), "fabricationPressure");
+    const frontier = metric(analyze(prompt, "claude-fable-5-1"), "fabricationPressure");
     expect(small.score).toBeGreaterThan(frontier.score);
   });
 

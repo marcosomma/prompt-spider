@@ -150,8 +150,8 @@ chosen frame ratio. Below about 980px wide the columns stack and the page scroll
   Tick *Transparent* for a PNG with no background.
 - **Report / PDF** opens the whole analysis as a document: the three measurements, the spider
   captured on a light surface, findings, the model's reasoning when it was asked, the prompt
-  shaded by focus, the sub-task list, the factor tables behind complexity and hallucination
-  risk, a per-chunk table and the leg legend. *Save as PDF / Print* uses the browser's print
+  shaded by focus, the sub-task list, the factor tables behind complexity and fabrication
+  pressure, a per-chunk table and the leg legend. *Save as PDF / Print* uses the browser's print
   dialog, which gives real pagination and selectable text; choose "Save as PDF" there.
 
 ## Reading the spider

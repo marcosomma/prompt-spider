@@ -104,8 +104,8 @@ export interface ModelProfile {
   readonly position: PositionCurve;
   /** Extra structure credit for XML-style tags and Markdown scaffolding. */
   readonly structureBoost: { readonly xml: number; readonly markdown: number };
-  /** Multiplier on the hallucination-risk estimate; 1 = frontier baseline. */
-  readonly hallucinationFactor: number;
+  /** Multiplier on the fabrication-pressure score; 1 = frontier baseline. */
+  readonly fabricationFactor: number;
   /** Short editorial notes shown with the profile. */
   readonly notes: readonly string[];
 }
@@ -132,7 +132,7 @@ export interface Insight {
   readonly chunks: readonly number[];
 }
 
-export type MetricId = "taskCount" | "complexity" | "hallucinationRisk";
+export type MetricId = "taskCount" | "complexity" | "fabricationPressure";
 
 /** Visual tone of a metric band. Status tones always ship with a label, never colour alone. */
 export type MetricTone = "good" | "neutral" | "warning" | "serious";

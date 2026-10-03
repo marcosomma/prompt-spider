@@ -3,13 +3,13 @@ import { detectTasks } from "./tasks";
 import { decomposeSubtasks } from "./subtasks";
 import { taskCountMetric } from "./taskCount";
 import { complexityMetric } from "./complexity";
-import { hallucinationRiskMetric } from "./hallucinationRisk";
+import { fabricationPressureMetric } from "./fabricationPressure";
 
 /** Prompt-level measurements, computed after the legs so they can reuse leg scores. */
 export function computeMetrics(ctx: LegContext, legs: readonly LegResult[]): Metric[] {
   const tasks = detectTasks(ctx);
   const subtasks = decomposeSubtasks(ctx, tasks, legs);
-  return [taskCountMetric(ctx, tasks, subtasks), complexityMetric(ctx, tasks, subtasks, legs), hallucinationRiskMetric(ctx, tasks, legs)];
+  return [taskCountMetric(ctx, tasks, subtasks), complexityMetric(ctx, tasks, subtasks, legs), fabricationPressureMetric(ctx, tasks, legs)];
 }
 
 export { detectTasks } from "./tasks";

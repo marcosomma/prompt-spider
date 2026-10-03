@@ -3,8 +3,8 @@ import { clamp01, countPhrases, countPhrasesUnlessNegated, countWords, rawTokens
 import type { TaskItem } from "./tasks";
 
 /**
- * Hallucination risk, estimated from prompt features that are known to push a
- * model towards fabricating: requests for precise facts without source
+ * Fabrication pressure: a heuristic score from prompt features that are known
+ * to push a model towards fabricating: requests for precise facts without source
  * material, pressure to always answer, forced completeness, long open-ended
  * output. Grounding material and permission to abstain pull the other way.
  * Creative tasks scale the factual pressure down because invention is wanted.
@@ -31,7 +31,7 @@ interface Signal {
   readonly chunks: readonly number[];
 }
 
-export function hallucinationRiskMetric(ctx: LegContext, tasks: readonly TaskItem[], legs: readonly LegResult[]): Metric {
+export function fabricationPressureMetric(ctx: LegContext, tasks: readonly TaskItem[], legs: readonly LegResult[]): Metric {
   const { chunks, tokens, profile } = ctx;
   const contextLoad = legs.find((l) => l.id === "contextLoad")?.scores ?? [];
   const taskChunks = new Set(tasks.map((t) => t.chunk));
@@ -100,7 +100,7 @@ export function hallucinationRiskMetric(ctx: LegContext, tasks: readonly TaskIte
   if (creativeMode) signals.push({ label: "Creative task (invention wanted)", contribution: -0.1, value: `${creative.hits} cues`, chunks: creative.where });
 
   const base = 0.12 + signals.reduce((sum, s) => sum + s.contribution, 0);
-  const score = clamp01(base * profile.hallucinationFactor);
+  const score = clamp01(base * profile.fabricationFactor);
   const band =
     score < 0.2
       ? { label: "low", tone: "good" as const }
@@ -123,7 +123,7 @@ export function hallucinationRiskMetric(ctx: LegContext, tasks: readonly TaskIte
   const factors: MetricFactor[] = signals.filter((s) => Math.abs(s.contribution) > 0.004 || s.label.startsWith("Grounding") || s.label.startsWith("Abstention")).map((s) => ({ label: s.label, value: s.value, contribution: s.contribution, chunks: [...new Set(s.chunks)] }));
 
   return {
-    id: "hallucinationRisk",
+    id: "fabricationPressure",
     label: "Fabrication pressure",
     display: band.label,
     score,
