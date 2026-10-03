@@ -1,5 +1,7 @@
 # Prompt Spider
 
+Live: https://marcosomma.github.io/prompt-spider/
+
 See how a model weighs your prompt. Paste a prompt, pick a model, and get a 3D spider:
 the body is the model, every leg is one analysis, and every ring is one chunk of your text
 in reading order. Each leg visits every chunk once and bends upward where that chunk scores
