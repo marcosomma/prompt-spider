@@ -1,0 +1,32 @@
+{
+  "name": "prompt-spider",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "See how a model weighs your prompt: chunk the text, run every analysis leg over every chunk, render it as a 3D spider.",
+  "author": "Marco Somma <marcosomma.work@gmail.com>",
+  "license": "MIT",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@babylonjs/core": "^9.29.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}

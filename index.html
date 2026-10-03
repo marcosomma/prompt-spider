@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Spider</title>
+    <meta name="description" content="See how a model weighs your prompt: every analysis leg touches every chunk, drawn as a 3D spider." />
+    <meta property="og:title" content="Prompt Spider" />
+    <meta property="og:description" content="Where a prompt pushes a model to focus, and where it doesn't. Chunk a prompt, score it on eleven legs, see it as a 3D spider." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#1a1a19" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%233987e5'/%3E%3Cg stroke='%233987e5' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M16 9V2M16 23v7M9 16H2M23 16h7M11 11L6 6M21 21l5 5M21 11l5-5M11 21l-5 5'/%3E%3C/g%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>Prompt Spider</h1>
+        <span class="brand-sub">where a prompt pushes a model to focus, and where it doesn't</span>
+      </div>
+      <button id="theme-toggle" class="ghost" type="button" aria-label="Toggle colour theme">Light</button>
+    </header>
+
+    <main class="layout">
+      <section class="column column-prompt">
+        <div class="toolbar">
+          <select id="model" aria-label="Model"></select>
+          <button id="analyze" class="primary" type="button">Analyze</button>
+          <button id="edit-toggle" class="ghost" type="button" hidden title="Switch between the editable text and the shaded analysis view">Edit</button>
+        </div>
+
+        <div id="samples" class="samples" aria-label="Sample prompts"></div>
+        <div id="prompt-view" class="prompt-view" data-mode="edit">
+          <textarea id="prompt" spellcheck="false" aria-label="Prompt"></textarea>
+          <div id="annotated" class="annotated" hidden aria-label="Annotated prompt"></div>
+        </div>
+
+        <nav class="tabs" aria-label="Details">
+          <button type="button" class="tab" data-tab="run">Run</button>
+          <button type="button" class="tab" data-tab="model" title="Ask the selected Claude model to rate the chunks itself">Model</button>
+          <button type="button" class="tab" data-tab="findings">Findings <span class="badge" data-badge="findings" hidden></span></button>
+          <button type="button" class="tab" data-tab="reasoning" hidden>Reasoning</button>
+          <span id="run-summary" class="tabs-status">Ready</span>
+        </nav>
+        <div id="tab-panels" class="tab-panels" hidden>
+          <section class="tab-panel" data-panel="run" hidden>
+            <div id="run-steps"></div>
+          </section>
+          <section class="tab-panel" data-panel="model" hidden>
+            <label class="field">
+              <span class="field-label">Anthropic API key</span>
+              <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-…" />
+            </label>
+            <label class="check">
+              <input id="use-self-report" type="checkbox" />
+              <span>Add a “Model self-report” leg and the model's own reasoning on the next analysis.</span>
+            </label>
+            <p class="hint">The key lives only in this tab's memory and is sent to api.anthropic.com from your browser. One streamed call per analysis.</p>
+          </section>
+          <section class="tab-panel" data-panel="findings" hidden>
+            <div id="insights" class="insights" aria-label="Findings"></div>
+          </section>
+          <section class="tab-panel" data-panel="reasoning" hidden>
+            <div id="reasoning"></div>
+          </section>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="column column-stage">
+        <div id="metrics" class="metrics" aria-label="Measurements"></div>
+        <div class="stage-toolbar">
+          <label class="inline">Frame
+            <select id="aspect">
+              <option value="16:9">16:9</option>
+              <option value="1:1">1:1</option>
+              <option value="4:5">4:5</option>
+              <option value="9:16">9:16</option>
+            </select>
+          </label>
+          <label class="inline"><input id="auto-rotate" type="checkbox" checked /> Turntable</label>
+          <label class="inline"><input id="transparent" type="checkbox" /> Transparent</label>
+          <button id="export" class="ghost" type="button">Export PNG</button>
+          <button id="report" class="ghost" type="button">Report / PDF</button>
+        </div>
+        <div id="stage-area" class="stage-area">
+          <div id="canvas-wrap" class="canvas-wrap" data-aspect="16:9">
+            <canvas id="scene" aria-label="3D spider of the prompt analysis"></canvas>
+          </div>
+        </div>
+        <div id="legend" class="legend" aria-label="Legs"></div>
+        <p class="caption">Body = model · leg = analysis · ring = chunk, in reading order outwards · a leg bends up where the chunk scores high · ↓ dilutes · click a leg to isolate it</p>
+      </section>
+    </main>
+
+    <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+    <div id="report-overlay" class="report-overlay" hidden>
+      <div class="report-bar">
+        <span>Report</span>
+        <span class="report-actions">
+          <button id="report-print" class="primary" type="button">Save as PDF / Print</button>
+          <button id="report-close" class="ghost" type="button">Close</button>
+        </span>
+      </div>
+      <div id="report-body" class="report-body"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
