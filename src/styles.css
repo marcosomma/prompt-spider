@@ -56,6 +56,9 @@ summary { cursor: pointer; }
 .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .brand-mark { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); align-self: center; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .brand-sub { color: var(--text-3); font-size: 12.5px; }
+.topbar-actions { display: flex; align-items: center; gap: 6px; }
+.icon-link { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-2); text-decoration: none; }
+.icon-link:hover { background: var(--surface-3); color: var(--text); }
 
 /* Everything fits the viewport: columns are fixed-height flex stacks whose long parts scroll inside. */
 .layout { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(340px, 440px) minmax(0, 1fr); gap: 16px; padding: 12px 16px 10px; }

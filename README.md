@@ -1,6 +1,6 @@
 # Prompt Spider
 
-Live: https://marcosomma.github.io/prompt-spider/
+Live: https://marcosomma.github.io/prompt-spider/ · by [Marco Somma](https://www.linkedin.com/in/marcosomma) · the thinking behind it: [ARTICLE.md](ARTICLE.md)
 
 See how a model weighs your prompt. Paste a prompt, pick a model, and get a 3D spider:
 the body is the model, every leg is one analysis, and every ring is one chunk of your text
