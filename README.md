@@ -20,7 +20,7 @@ text releases the pill.
 
 ## Deploy
 
-The repository deploys itself to GitHub Pages on every push to `main` through
+The repository deploys itself to GitHub Pages on every push to `master` through
 `.github/workflows/deploy.yml`: install, test, build with the base path set to
 `/<repository name>/` (or `/` for a `<user>.github.io` repository), then publish `dist/`.
 In the repository settings, under *Pages*, set the source to **GitHub Actions** once. The
