@@ -30,7 +30,7 @@ export const SUBTASK_KIND_LABELS: Readonly<Record<SubtaskKind, string>> = {
   transform: "transformations",
   iterate: "per-item loops",
   compose: "output fields",
-  verify: "verifications",
+  verify: "verification requests",
   tool: "tool calls",
   format: "output formatting",
 };

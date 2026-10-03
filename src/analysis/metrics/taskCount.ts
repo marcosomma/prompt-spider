@@ -1,7 +1,19 @@
 import type { LegContext, Metric, MetricFactor } from "../types";
 import { excerpt } from "../text";
 import type { TaskItem } from "./tasks";
-import { SUBTASK_KIND_LABELS, countByKind, type Subtask } from "./subtasks";
+import { SUBTASK_KIND_LABELS, countByKind, type Subtask, type SubtaskKind } from "./subtasks";
+
+const KIND_SHORT: Readonly<Record<SubtaskKind, string>> = {
+  input: "input",
+  select: "filter",
+  decide: "decision",
+  transform: "transformation",
+  iterate: "per-item loop",
+  compose: "output field",
+  verify: "verification request",
+  tool: "tool call",
+  format: "format",
+};
 
 /**
  * Task load: how many deliverables the prompt asks for and how many sub-tasks
@@ -33,11 +45,18 @@ export function taskCountMetric(_ctx: LegContext, tasks: readonly TaskItem[], su
       : deliverables.length === 1
         ? `1 deliverable (“${excerpt(deliverables[0]!.clause, 50)}”)`
         : `${deliverables.length} deliverables`;
-  const summary = n === 0 ? `${head}; nothing beyond the deliverable itself is implied.` : `${head} decomposes into ${n} implied sub-task${n === 1 ? "" : "s"}: ${breakdown}.${deliverables.length > 1 ? " Several deliverables compete for attention; consider one prompt per deliverable." : ""}`;
+  const summary =
+    n === 0
+      ? `${head}; nothing beyond the deliverable itself is spelled out.`
+      : `${head} spells out ${n} responsibilit${n === 1 ? "y" : "ies"}: ${breakdown}.${
+          deliverables.length > 1
+            ? " Several deliverables share one answer; decide whether each needs its own call (independent enforcement, evidence, retries, measurement) or just its own place in the output."
+            : ""
+        }`;
 
   const factors: MetricFactor[] = [
     ...deliverables.map<MetricFactor>((t) => ({ label: `deliverable · ${t.verb}`, value: excerpt(t.clause, 70), contribution: 0, chunks: [t.chunk] })),
-    ...subtasks.map<MetricFactor>((s) => ({ label: SUBTASK_KIND_LABELS[s.kind].replace(/s$/, "").replace("inputs to understand", "input").replace("output formatting", "format"), value: s.label, contribution: 0, chunks: s.chunks })),
+    ...subtasks.map<MetricFactor>((s) => ({ label: KIND_SHORT[s.kind], value: s.label, contribution: 0, chunks: s.chunks })),
   ];
 
   return {
@@ -49,5 +68,7 @@ export function taskCountMetric(_ctx: LegContext, tasks: readonly TaskItem[], su
     summary,
     factors,
     chunks: [...new Set([...tasks.map((t) => t.chunk), ...subtasks.flatMap((s) => s.chunks)])],
+    caveat:
+      "An inventory for review, produced by this tool's taxonomy (inputs, filters, decisions, transformations, loops, output fields, checks, tools, format). The same demand can appear under two kinds, so it is not a count of distinct operations the model performs.",
   };
 }

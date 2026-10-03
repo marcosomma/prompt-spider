@@ -80,7 +80,11 @@ Three prompt-level gauges sit above the insights, each with a band, a one-line s
 an expandable list of the factors behind it. Hovering a tile or a factor lights the chunks
 that produced it on the spider and in the list.
 
-- **Implied sub-tasks** is the headline: how many steps the deliverable decomposes into.
+- **Implied sub-tasks** is the headline: how many responsibilities the prompt spells out
+  beyond the deliverable itself. It is an inventory produced by a fixed taxonomy, useful for
+  review; the same demand can appear under two kinds (classifying the ticket is a
+  transformation and also an output field), so it is not a count of distinct operations the
+  model performs.
   The detector first finds *deliverables* (what the prompt fundamentally asks for: "Write a
   post", "surface the gaps"; coordinated clauses count separately, negated and output-shaping
   verbs do not), then extracts the implied sub-tasks by kind: inputs to understand (the
@@ -95,13 +99,14 @@ that produced it on the spider and in the list.
   weight, followed by hard constraints, reasoning demands, deliverables, conditional
   branches, output structure, length and domain vocabulary. Bands: low, moderate, high, very
   high.
-- **Hallucination risk** is an estimate from prompt features that push a model to fabricate
-  (unsourced facts requested, specific entities without material, pressure to always answer,
-  forced completeness, long open-ended output, speculation, judgement-heavy analysis) minus
-  the features that pull the other way (grounding material provided, permission to abstain,
-  a creative task where invention is wanted), scaled by the model profile. It is shown as a
-  percentage for readability, but it is a feature-based estimate, not a measured
-  probability, and the tile says so.
+- **Fabrication pressure** is a heuristic score (0–100, shown with its band) built from
+  wording features that push a model to fabricate (unsourced facts requested, specific
+  entities without material, pressure to always answer, values demanded with no empty or
+  unknown option, long open-ended output, speculation, judgement-heavy analysis) minus the
+  features that pull the other way (grounding material provided, an explicit way to abstain, a
+  creative task where invention is wanted), scaled by the model profile. It is not a
+  calibrated probability and the tile says so: use it to find what to fix, not to predict a
+  failure rate.
 
 ### Asking the model itself
 

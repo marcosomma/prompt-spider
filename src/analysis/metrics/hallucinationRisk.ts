@@ -20,7 +20,7 @@ const OPEN_ENDED = new Set(["detailed", "comprehensive", "in-depth", "exhaustive
 const SPECULATION = new Set(["predict", "forecast", "guess", "speculate", "likely", "probably", "will", "future", "trend", "trends"]);
 const GROUNDING_PHRASES = ["based on the", "from the provided", "from the text", "in the text", "in the document", "using only", "only use", "do not use outside", "from the context", "provided below", "attached", "the following document", "according to the", "from the source", "in the source", "ground in", "grounded in"];
 const GROUNDING_SECTIONS = new Set(["context", "document", "documents", "data", "input", "source", "sources", "reference", "references", "text", "transcript", "notes", "examples", "example", "requirements", "policy"]);
-const ABSTENTION_PHRASES = ["if you don't know", "if you do not know", "say so", "say you don't know", "i don't know", "not sure", "unsure", "not found", "return null", "leave empty", "leave it empty", "leave blank", "do not invent", "don't invent", "never invent", "do not make up", "don't make up", "never make up", "do not fabricate", "don't fabricate", "do not guess", "don't guess", "never guess", "only if you are sure", "when uncertain", "if uncertain", "verify", "double-check", "flag uncertainty", "state your confidence", "cite from the provided", "skip it", "do not report"];
+const ABSTENTION_PHRASES = ["may be empty", "can be empty", "empty array", "empty arrays", "or null", "if none", "when none", "when unknown", "if unknown", "mark as unknown", "optional", "if you don't know", "if you do not know", "say so", "say you don't know", "i don't know", "not sure", "unsure", "not found", "return null", "leave empty", "leave it empty", "leave blank", "do not invent", "don't invent", "never invent", "do not make up", "don't make up", "never make up", "do not fabricate", "don't fabricate", "do not guess", "don't guess", "never guess", "only if you are sure", "when uncertain", "if uncertain", "verify", "double-check", "flag uncertainty", "state your confidence", "cite from the provided", "skip it", "do not report"];
 const JUDGEMENT_VERBS = new Set(["assess", "evaluate", "judge", "classify", "rank", "rate", "score", "grade", "audit", "review", "diagnose", "determine", "identify", "flag", "detect", "surface"]);
 const CREATIVE_WORDS = new Set(["story", "stories", "poem", "poems", "fiction", "fictional", "imagine", "brainstorm", "slogan", "slogans", "tagline", "taglines", "ad", "ads", "post", "posts", "tweet", "tweets", "caption", "captions", "creative", "invent", "fantasy", "character", "characters", "lyrics", "joke", "jokes", "pitch", "copy", "headline", "headlines", "hook", "hooks"]);
 
@@ -88,7 +88,8 @@ export function hallucinationRiskMetric(ctx: LegContext, tasks: readonly TaskIte
     { label: "Unsourced facts requested", contribution: 0.3 * saturate(facts.hits, 0.45) * factualScale, value: `${facts.hits} cues`, chunks: facts.where },
     { label: "Specific entities without material", contribution: 0.15 * saturate(entities.hits, 0.2) * factualScale, value: `${entities.hits} names`, chunks: entities.where },
     { label: "Pressure to always answer", contribution: 0.25 * saturate(certainty.hits, 0.8), value: `${certainty.hits} phrases`, chunks: certainty.where },
-    { label: "Forced completeness", contribution: 0.15 * saturate(completeness.hits, 0.3), value: `${completeness.hits} cues`, chunks: completeness.where },
+    // Requiring a key is harmless; demanding a substantive value with no empty or unknown option is the pressure.
+    { label: "Completeness demanded, no empty option", contribution: 0.15 * saturate(completeness.hits, 0.3) * (abstention.hits > 0 ? 0.3 : 1), value: `${completeness.hits} cues${abstention.hits > 0 ? ", empty allowed" : ""}`, chunks: completeness.where },
     { label: "Long open-ended output", contribution: 0.1 * saturate(openEnded.hits, 0.6), value: `${openEnded.hits} cues`, chunks: openEnded.where },
     { label: "Speculation asked", contribution: 0.1 * saturate(speculation.hits, 0.6) * (creativeMode ? 0.35 : 1), value: `${speculation.hits} cues`, chunks: speculation.where },
     // Evaluative claims about material (gaps, scores, verdicts) are a classic fabrication surface.
@@ -110,23 +111,27 @@ export function hallucinationRiskMetric(ctx: LegContext, tasks: readonly TaskIte
           : { label: "high", tone: "serious" as const };
 
   const mitigations: string[] = [];
-  if (abstention.hits === 0 && !creativeMode) mitigations.push("allow “I don't know” or an empty result");
+  if (abstention.hits === 0 && !creativeMode) mitigations.push("give an explicit way to say “unknown” or return empty");
   if (groundingStrength < 0.3 && facts.hits > 0) mitigations.push("provide the source material instead of asking for recall");
   if (certainty.hits > 0) mitigations.push("drop the pressure to always answer");
-  if (completeness.hits >= 3) mitigations.push("make completeness optional where data may be missing");
-  const summary = `${band.label[0]!.toUpperCase()}${band.label.slice(1)} risk for ${profile.label}${creativeMode ? " (creative task, fabrication is expected)" : ""}.${mitigations.length ? ` To lower it: ${mitigations.join("; ")}.` : ""}`;
+  if (completeness.hits >= 3 && abstention.hits === 0) mitigations.push("let demanded values be empty where evidence may be missing");
+  const flagged = signals.filter((s) => s.contribution > 0.02).sort((a, b) => b.contribution - a.contribution).map((s) => s.label.toLowerCase());
+  const summary = `Heuristic score ${Math.round(score * 100)}/100 for ${profile.label}${creativeMode ? " (creative task, fabrication is expected)" : ""}. ${
+    flagged.length ? `Flags: ${flagged.join("; ")}.` : "Nothing in the wording pushes towards fabrication."
+  }${mitigations.length ? ` To lower it: ${mitigations.join("; ")}.` : ""}`;
 
   const factors: MetricFactor[] = signals.filter((s) => Math.abs(s.contribution) > 0.004 || s.label.startsWith("Grounding") || s.label.startsWith("Abstention")).map((s) => ({ label: s.label, value: s.value, contribution: s.contribution, chunks: [...new Set(s.chunks)] }));
 
   return {
     id: "hallucinationRisk",
-    label: "Hallucination risk",
-    display: score < 0.05 ? "< 5%" : `≈ ${Math.round(score * 100)}%`,
+    label: "Fabrication pressure",
+    display: band.label,
     score,
-    band,
+    band: { label: `heuristic ${Math.round(score * 100)}/100`, tone: band.tone },
     summary,
     factors,
     chunks: [...new Set(signals.flatMap((s) => s.chunks))],
-    caveat: "Estimated from prompt features and the model profile, not a measured probability.",
+    caveat:
+      "A heuristic, not a calibrated probability: a weighted sum of wording features known to push models to fabricate, minus the features that pull the other way, scaled by the model profile. Use it to find what to fix, not to predict a failure rate.",
   };
 }
